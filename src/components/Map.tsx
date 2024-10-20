@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+
 
 interface Hazard {
     severity: string;
@@ -13,13 +13,10 @@ interface Hazard {
     lastUpdate: string;
 }
 
-const icon = new L.Icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-});
+interface HazardMarker {
+    fillColor: string;
+    radius: number;
+}
 
 const MAPBOX_ACCESS_TOKEN = "pk.eyJ1Ijoic2FsdmF0b3JlYXZhbnpvNzUiLCJhIjoiY20yZnBpdjJ0MGJ5azJscXplbG0xeTMzdyJ9.3WuDPJmpXhT5BsNQYfmqvQ"//process.env.NEXT_PUBLIC_MAPBOXTOKEN;
 
@@ -35,6 +32,13 @@ const Map: React.FC = () => {
             });
     }, []);
 
+    const getHazardOptions = (severity: string): HazardMarker => {
+        return {
+            fillColor: severity === 'WARNING' ? 'orange' : severity === 'WATCH' ? 'yellow' : severity === 'ADVISORY' ? 'green' : 'red',
+            radius: severity === 'WARNING' ? 8 : severity === 'WATCH' ? 5 : severity === 'ADVISORY' ? 3 : 12
+        };
+    }
+
 
     return (
         <MapContainer
@@ -49,9 +53,16 @@ const Map: React.FC = () => {
                 zoomOffset={-1}
             />
             {hazards && hazards.map((hazard) => (
-                <Marker key={hazard.name} position={[hazard.latitude, hazard.longitude]} icon={icon}>
+                <CircleMarker
+                    key={hazard.name}
+                    center={[hazard.latitude, hazard.longitude]}
+                    pathOptions={{
+                        color: getHazardOptions(hazard.severity).fillColor,
+                        fillColor: getHazardOptions(hazard.severity).fillColor
+                    }}
+                    radius={getHazardOptions(hazard.severity).radius}>
                     <Popup>{hazard.name}</Popup>
-                </Marker>
+                </CircleMarker>
             ))}
         </MapContainer>
     );
