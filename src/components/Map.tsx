@@ -3,6 +3,16 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
+interface Hazard {
+    severity: string;
+    type: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    created: string;
+    lastUpdate: string;
+}
+
 const icon = new L.Icon({
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
     iconSize: [25, 41],
@@ -14,7 +24,8 @@ const icon = new L.Icon({
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOXTOKEN;
 
 const Map: React.FC = () => {
-    const [hazards, setHazards] = useState([]);
+   const [hazards, setHazards] = useState<Hazard[]>([]);
+
 
     useEffect(() => {
         fetch("https://api.hungermapdata.org/v1/climate/hazards")
@@ -23,6 +34,7 @@ const Map: React.FC = () => {
                 setHazards(data.body.hazards);
             });
     }, []);
+
 
     return (
         <MapContainer
@@ -37,7 +49,7 @@ const Map: React.FC = () => {
                 zoomOffset={-1}
             />
             {hazards && hazards.map((hazard) => (
-                <Marker key={hazard.id} position={[hazard.latitude, hazard.longitude]} icon={icon}>
+                <Marker key={hazard.name} position={[hazard.latitude, hazard.longitude]} icon={icon}>
                     <Popup>{hazard.name}</Popup>
                 </Marker>
             ))}
